@@ -161,6 +161,18 @@ async function loadSystemSettings() {
             const themeLink = document.getElementById('dynamicThemeCss');
             if (themeLink) {
                 themeLink.href = `css/${activeTheme}.css`;
+                
+                // کاتێک دیزاینە نوێیەکە بەتەواوی بار بوو، ئینجا شاشەکە پیشان بدە
+                themeLink.onload = () => {
+                    document.body.style.opacity = '1';
+                    document.body.style.visibility = 'visible';
+                };
+                
+                // بۆ دڵنیایی (ئەگەر هێڵی ئینتەرنێت زۆر خێرا بوو یان فایلەکە لۆکاڵی بوو)
+                setTimeout(() => {
+                    document.body.style.opacity = '1';
+                    document.body.style.visibility = 'visible';
+                }, 300);
             }
             // ---------------------------------------------------
             
