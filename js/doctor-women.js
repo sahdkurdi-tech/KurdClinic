@@ -127,6 +127,7 @@ function loadQueue(section) {
     
     // وشەکانی تایبەت بە حاڵەتی کاتی
     let txtPendingBtn = currentLang === 'en' ? 'Hold ⏳' : (currentLang === 'ar' ? 'مؤقت ⏳' : 'کاتی ⏳');
+    let txtCallPending = currentLang === 'en' ? 'Recall 🔊' : (currentLang === 'ar' ? 'استدعاء 🔊' : 'بانگکردنەوە 🔊');
     let txtPendingStatus = currentLang === 'en' ? 'On Hold (Pending)' : (currentLang === 'ar' ? 'في الانتظار المؤقت' : 'چاوەڕوانی کاتی');
 
     let txtInside = currentLang === 'en' ? 'Inside' : (currentLang === 'ar' ? 'في الداخل' : 'لەژوورەوەیە');
@@ -143,12 +144,24 @@ function loadQueue(section) {
             const div = document.createElement('div');
             div.className = 'list-item';
             
+            let isPending = data.status === 'pending';
+            
+            // جیاکردنەوەی تەواوەتی دیزاینی کارتی حاڵەتی کاتی
+            if (isPending) {
+                div.style.border = "3px dashed #f59e0b";
+                div.style.background = "repeating-linear-gradient(45deg, #fffbeb, #fffbeb 10px, #fef3c7 10px, #fef3c7 20px)";
+                div.style.boxShadow = "0 8px 20px rgba(245, 158, 11, 0.25)";
+                div.style.transform = "scale(1.02)";
+                div.style.margin = "15px 0";
+            }
+            
             let buttons = '';
-            // ئەگەر چاوەڕوان بێت یان لە دۆخی کاتی بێت، تەنیا دوگمەی بانگکردنی بۆ دەردەکەوێت
-            if (data.status === 'waiting' || data.status === 'pending') {
+            if (data.status === 'waiting') {
                 buttons = `<button class="btn-call" onclick="updateStatus('${id}', 'called')">${txtCall}</button>`;
+            } else if (isPending) {
+                // دوگمەی بانگکردنەوە بە ڕەنگی پرتەقاڵی و تایبەت
+                buttons = `<button class="btn-call" onclick="updateStatus('${id}', 'called')" style="background: #f97316; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);"><i class="fa-solid fa-rotate-left"></i> ${txtCallPending}</button>`;
             } else if (data.status === 'called') {
-                // ئەگەر لە ژوورەوە بێت، هەر سێ دوگمەکەی بۆ دەردەکەوێت
                 buttons = `
                     <button class="btn-finish" onclick="updateStatus('${id}', 'finished')">${txtFinished}</button>
                     <button class="btn-noshow" onclick="updateStatus('${id}', 'noshow')">${txtNoShow}</button>
@@ -173,17 +186,31 @@ function loadQueue(section) {
                     nameText = displayLabel.replace('بەپەلە', '').replace('لەناکاو', '').replace('حاڵەتی', '').replace('Emergency', '').replace('حالة طارئة', '').trim();
                 }
 
-                displayNumHTML = `<div style="display:flex; align-items:center; justify-content:center; background:#f8fafc; color:#0f172a; border:3px solid #cbd5e1; border-radius:16px; padding:10px 20px; font-size:24px; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.05);">${nameText}</div>`;
+                if (isPending) {
+                    displayNumHTML = `<div style="display:flex; align-items:center; justify-content:center; background:#f59e0b; color:#ffffff; border:3px solid #b45309; border-radius:16px; padding:10px 20px; font-size:24px; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.15);"><i class="fa-solid fa-pause" style="margin-right: 8px;"></i> ${nameText}</div>`;
+                } else {
+                    displayNumHTML = `<div style="display:flex; align-items:center; justify-content:center; background:#f8fafc; color:#0f172a; border:3px solid #cbd5e1; border-radius:16px; padding:10px 20px; font-size:24px; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.05);">${nameText}</div>`;
+                }
+                
                 emergencyBadge = `<span class="status-badge" style="background: var(--danger); color: white; margin-left: 10px;"><i class="fa-solid fa-bell"></i> ${badgeText}</span>`;
                 isDirectSend = true; 
             } else {
-                let bgColor = sysSettings ? (data.visitType === 'نەشتەرگەری' ? sysSettings.womenColorN : sysSettings.womenColorB) : '#fbcfe8';
-                let textColor = getContrastColor(bgColor);
+                if (isPending) {
+                    displayNumHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f59e0b; color:#ffffff; border:2px solid #b45309; border-radius:16px; width:75px; height:65px; box-shadow:0 4px 15px rgba(245, 158, 11, 0.4);">
+                        <i class="fa-solid fa-pause" style="font-size: 14px; margin-bottom: 2px;"></i>
+                        <span style="font-size: 24px; font-weight: bold; font-family: system-ui, sans-serif; letter-spacing: 1px;" dir="ltr">${displayLabel}</span>
+                    </div>`;
+                } else {
+                    // بەکارهێنانی ڕەنگی تایبەت بە ئافرەتان
+                    let bgColor = sysSettings ? (data.visitType === 'نەشتەرگەری' ? sysSettings.womenColorN : sysSettings.womenColorB) : '#fbcfe8';
+                    let textColor = getContrastColor(bgColor);
 
-                displayNumHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:${bgColor}; color:${textColor}; border:2px solid transparent; border-radius:16px; width:75px; height:60px; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
-                    <span style="font-size: 24px; font-weight: bold; font-family: system-ui, sans-serif; letter-spacing: 1px;" dir="ltr">${displayLabel}</span>
-                </div>`;
+                    displayNumHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:${bgColor}; color:${textColor}; border:2px solid transparent; border-radius:16px; width:75px; height:60px; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
+                        <span style="font-size: 24px; font-weight: bold; font-family: system-ui, sans-serif; letter-spacing: 1px;" dir="ltr">${displayLabel}</span>
+                    </div>`;
+                }
             }
 
             let visitTypeBadge = "";
@@ -210,17 +237,15 @@ function loadQueue(section) {
             let statusTxt = '';
             if (data.status === 'called') {
                 statusTxt = txtInside;
-            } else if (data.status === 'pending') {
-                statusTxt = `<span style="color: #f59e0b;"><i class="fa-solid fa-clock-rotate-left"></i> ${txtPendingStatus}</span>`;
+            } else if (isPending) {
+                // دەقی چاوەڕوانی کاتی بە گەورەیی و ئایکۆنی جوڵاو
+                statusTxt = `<span style="color: #b45309; font-size: 20px; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1);"><i class="fa-solid fa-clock-rotate-left fa-spin-pulse" style="--fa-animation-duration: 2s;"></i> ${txtPendingStatus}</span>`;
             } else {
                 statusTxt = txtWaiting;
             }
 
-            // گۆڕینی باگراوەندی بۆکسەکە ئەگەر نەخۆشەکە کاتی بوو بۆ ئەوەی خێرا جیا بێتەوە
-            let isPendingStyle = data.status === 'pending' ? 'border: 2px solid #fcd34d; background-color: #fef3c7;' : '';
-
             div.innerHTML = `
-                <div class="patient-info" style="border-radius: 12px; ${isPendingStyle}">
+                <div class="patient-info" style="border-radius: 12px;">
                     ${displayNumHTML}
                     <div style="display: flex; flex-direction: column;">
                         <div>${emergencyBadge} ${visitTypeBadge} <span style="font-size: 18px; font-weight: bold; margin-right: 10px;">${statusTxt}</span></div>
