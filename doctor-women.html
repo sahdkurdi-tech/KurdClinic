@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" data-page-title="pageTitleWomen">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دکتۆری ئافرەتان</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="display: none;" id="secureBody"> 
+    <div class="container theme-women">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1 data-i18n="navWomen" style="margin-bottom: 0; padding-bottom: 0;"><i class="fa-solid fa-user-doctor"></i> پزیشکی ئافرەتان</h1>
+            <div style="display: flex; gap: 15px;">
+                <div class="modern-lang-switcher">
+                    <button class="lang-btn" data-lang="ku">کوردی</button>
+                    <button class="lang-btn" data-lang="ar">عربي</button>
+                    <button class="lang-btn" data-lang="en">EN</button>
+                </div>
+                <button id="btnRefresh" style="background: var(--warning); width: auto; padding: 12px 20px; font-size: 16px;">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+                <button id="btnLogout" data-i18n="logout" style="background: var(--danger); width: auto; padding: 12px 20px; font-size: 16px;">
+                    <i class="fa-solid fa-right-from-bracket"></i> دەرچوون
+                </button>
+            </div>
+        </div>
+        
+        <button id="btnToggleEmergency" style="width: 100%; background: #fef2f2; color: #ef4444; border: 2px dashed #fca5a5; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-bolt"></i> <span data-i18n="btnDirectSend">ناردنی ڕاستەوخۆ (بەبێ سەرە)</span> <i id="emergencyIcon" class="fa-solid fa-chevron-down"></i>
+        </button>
+
+        <div id="emergencyBox" class="emergency-box" style="background: #f8fafc; border: 2px solid #e2e8f0; padding: 30px; display: none; margin-bottom: 30px;">
+            <h3 data-i18n="directFormTitle" style="margin-bottom: 25px; color: var(--text-main);"><i class="fa-solid fa-bolt" style="color: #ef4444;"></i> فۆڕمی ناردنی ڕاستەوخۆ</h3>
+            
+            <label data-i18n="directNameLbl" style="color: #64748b; font-size: 16px; margin-bottom: 8px; display: block; font-weight: bold;">١. ناوی نەخۆش یان ژمارە:</label>
+            <input type="text" id="emergencyInput" data-i18n-placeholder="directNamePh" placeholder="بۆ نموونە: سارا، یان 99..." style="margin-bottom: 30px !important;">
+            
+            <label data-i18n="directTypeLbl" style="color: #64748b; font-size: 16px; margin-bottom: 8px; display: block; font-weight: bold;">٢. جۆری حاڵەت (هەڵیبژێرە یان بنووسە):</label>
+            
+            <input type="text" id="emergencyType" placeholder="جۆری حاڵەت لێرە بنووسە یان لە خوارەوە هەڵبژێرە..." style="margin-bottom: 15px !important;">
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap;">
+                <button type="button" onclick="document.getElementById('emergencyType').value=this.innerText" data-i18n="emergencyBadge" style="padding: 8px 16px; font-size: 15px; font-weight: bold; background: #fee2e2; color: #ef4444; border-radius: 20px; border: 1px solid #fca5a5; cursor: pointer; width: auto; box-shadow: none;">حاڵەتی بەپەلە</button>
+                <button type="button" onclick="document.getElementById('emergencyType').value=this.innerText" data-i18n="surgeryLabelW" style="padding: 8px 16px; font-size: 15px; font-weight: bold; background: #e0e7ff; color: #4f46e5; border-radius: 20px; border: 1px solid #a5b4fc; cursor: pointer; width: auto; box-shadow: none;">نەشتەرگەری</button>
+                <button type="button" onclick="document.getElementById('emergencyType').value=this.innerText" data-i18n="surgeryEmg" style="padding: 8px 16px; font-size: 15px; font-weight: bold; background: #ffedd5; color: #ea580c; border-radius: 20px; border: 1px solid #fdba74; cursor: pointer; width: auto; box-shadow: none;">نەشتەرگەری بەپەلە</button>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px; background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <input type="checkbox" id="hideSubtitleCheck" style="width: 22px; height: 22px; cursor: pointer;">
+                <label for="hideSubtitleCheck" data-i18n="hideWelcomeLbl" style="font-size: 16px; font-weight: bold;">شاردنەوەی وشەی (فەرموو بۆ ژوورەوە)</label>
+            </div>
+            <button id="btnEmergency" data-i18n="btnEmergency" class="btn-emergency">ناردن بۆ شاشەی چاوەڕوانی</button>
+        </div>
+
+        <h3 data-i18n="waitingListTitle"><i class="fa-solid fa-list-ol"></i> لیستی چاوەڕوانییەکان</h3>
+        <div id="waitingList"></div>
+    </div>
+    
+    <script type="module" src="js/doctor-women.js"></script>
+</body>
+</html>

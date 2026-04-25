@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" data-page-title="pageTitleScreen">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شاشەی چاوەڕوانی</title>
+    <link id="dynamicThemeCss" rel="stylesheet" href="css/theme1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="tv-body">
+    
+    <div class="dhikr-container">
+        <div class="dhikr-card-wrapper">
+            <div class="dhikr-card-inner">
+                <div id="dhikrText" class="dhikr-text">سُبْحَانَ اللّٰهِ</div>
+            </div>
+        </div>
+    </div>
+
+<div class="screen-container">
+        <div class="screen-box men">
+            <div class="screen-title">
+                <span class="title-main">
+                    <i class="fa-solid fa-person"></i> 
+                    <span id="menSectionTitle" data-i18n="menSection">بەشی پیاوان</span>
+                </span>
+                <span class="room-number" id="menRoomText">ژووری ( 9 )</span>
+            </div>
+            <div class="number-label" data-i18n="numberLabel">ژمارەی</div>
+            
+            <div id="menScreen" class="screen-number-container">
+                <div class="screen-number">--</div>
+            </div>
+            
+            <p id="menSubtitle" class="screen-subtitle" data-i18n="welcomeInside" style="transition: opacity 0.5s ease;">فەرموو بۆ ژوورەوە</p>
+        </div>
+
+        <div class="screen-box women">
+            <div class="screen-title">
+                <span class="title-main">
+                    <i class="fa-solid fa-person-dress"></i> 
+                    <span id="womenSectionTitle" data-i18n="womenSection">بەشی ئافرەتان</span>
+                </span>
+                <span class="room-number" id="womenRoomText">ژووری ( 10 )</span>
+            </div>
+            <div class="number-label" data-i18n="numberLabel">ژمارەی</div>
+            
+            <div id="womenScreen" class="screen-number-container">
+                <div class="screen-number">--</div>
+            </div>
+            
+            <p id="womenSubtitle" class="screen-subtitle" data-i18n="welcomeInside" style="transition: opacity 0.5s ease;">فەرموو بۆ ژوورەوە</p>
+        </div>
+    </div>
+
+    <script type="module" src="js/screen.js"></script>
+</body>
+</html>

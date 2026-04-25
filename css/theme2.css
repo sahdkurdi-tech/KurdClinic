@@ -1,0 +1,111 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+@font-face { font-family: 'NRT'; src: url('../fonts/NRT-Reg.ttf') format('truetype'); }
+
+* { box-sizing: border-box; font-family: 'NRT', sans-serif; margin: 0; padding: 0; }
+
+body {
+    direction: rtl;
+    /* باگراوەندێکی زۆر ڕاقی و سەردەمیانە (macOS Style) */
+    background-color: #e2e8f0;
+    background-image: 
+        radial-gradient(circle at 15% 30%, rgba(2, 132, 199, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(190, 24, 93, 0.15) 0%, transparent 40%);
+    color: #1e293b;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.tv-body { padding: 3vh 4vw; display: flex; flex-direction: column; }
+
+/* زیکرەکان بە شێوازی کریستاڵ - گەورەکران */
+.dhikr-container { 
+    height: 12vh; /* پێشتر ٨ بوو، گەورەمان کرد */
+    display: flex; align-items: center; justify-content: center; 
+    margin-bottom: 3vh; /* بۆ ئەوەی کارتەکان پاڵ بنێت بۆ خوارەوە */
+}
+.dhikr-card-wrapper {
+    background: rgba(255, 255, 255, 0.5); 
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 50px;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05), inset 0 2px 10px rgba(255,255,255,0.5);
+    width: 70vw; /* پێشتر ٥٠ بوو، با بۆکسەکەش درێژتر بێت */
+    height: 115%; display: flex; align-items: center; justify-content: center;
+    padding: 0 3vw;
+}
+.dhikr-text { 
+    font-family: 'Amiri', serif; 
+    font-size: 6.6vh; /* پێشتر ٣.٥ بوو، زۆر گەورەترمان کرد */
+    font-weight: 700; color: #1e293b; transition: all 0.5s ease; text-align: center;
+}
+.dhikr-text.fade-out { opacity: 0; transform: scale(0.95); }
+
+/* شاردنەوەی یەکجاری وشەی فەرموو بۆ ژوورەوە */
+.screen-subtitle {
+    display: none !important;
+}
+
+/* کارتەکانی نەخۆش */
+.screen-container { 
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5vw; 
+    height: 72vh; /* کەمێک کەممان کردەوە بۆ ئەوەی جێگەی زیکرە گەورەکان ببێتەوە */
+    margin-top: 2vh; /* هێنانە خوارەوەی کارتەکان */
+}
+.screen-box {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 40px; padding: 4vh 2vw;
+    display: flex; flex-direction: column; justify-content: space-around; /* ڕێکخستنی بۆشایی ناو کارتەکە پاش شاردنەوەی ژێرنووسەکە */
+    align-items: center;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06), inset 0 0 20px rgba(255,255,255,0.3);
+}
+
+.screen-title { display: flex; flex-direction: column; align-items: center; gap: 2vh; }
+.title-main { font-size: 4.5vh; font-weight: bold; display: flex; align-items: center; gap: 15px; color: #0f172a; }
+.screen-box.men .title-main i { color: #0284c7; }
+.screen-box.women .title-main i { color: #be185d; }
+
+.room-number { font-size: 3.5vh; color: #475569; background: rgba(255,255,255,0.7); padding: 1.5vh 4vw; border-radius: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.9); }
+.number-label { display: none !important; }
+
+/* ========================================================
+   بۆکسەکانی N و B بێ هیچ درەوشانەوەیەک (زۆر ساف و ڕاقی)
+   ======================================================== */
+.screen-number-container > div > div[dir="ltr"] {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 2px solid rgba(255, 255, 255, 1) !important;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+    border-radius: 40px !important;
+    padding: 3vh 6vw !important;
+    font-size: 19vh !important; /* مادام وشەی فەرموو بۆ ژوورەوە نەماوە، دەکرێت ژمارەکە تۆزێک گەورەتر بێت */
+    
+    /* لێرەدا کۆدی سێبەرە ناشرینەکانمان کوشتووەتەوە */
+    text-shadow: none !important; 
+    filter: none !important;
+}
+
+/* ڕەنگی تۆخ و ساف بۆ پیاوان بێ ئەوەی بدرەوشێتەوە */
+.screen-box.men .screen-number-container > div > div[dir="ltr"] { 
+    color: #0369a1 !important; 
+}
+
+/* ڕەنگی تۆخ و ساف بۆ ئافرەتان بێ ئەوەی بدرەوشێتەوە */
+.screen-box.women .screen-number-container > div > div[dir="ltr"] { 
+    color: #9d174d !important; 
+}
+
+.emergency-badge {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+    border: 1px solid #fca5a5 !important;
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.15) !important;
+    border-radius: 20px !important;
+    padding: 1.5vh 4vw !important;
+    font-size: 3.5vh !important;
+}
+
+.number-animate { animation: softPop 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes softPop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }

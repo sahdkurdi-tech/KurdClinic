@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" data-page-title="pageTitleSettings">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ڕێکخستنەکانی سیستەم</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        /* دیزاینی تایبەت بە مینیوی تابەکان */
+        .tab-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            overflow-x: auto;
+        }
+        .tab-btn {
+            flex: 1;
+            min-width: 140px;
+            background: transparent;
+            border: none;
+            padding: 12px 15px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            color: #64748b;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tab-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .tab-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+        }
+        .tab-section {
+            display: none;
+            animation: fadeInTab 0.4s ease;
+        }
+        .tab-section.active-tab {
+            display: block;
+        }
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* گۆڕینی ڕەنگی تابی زیکرەکان بۆ سەوز لەکاتی چالاکبووندا */
+        .tab-btn[data-tab="dhikrTab"].active {
+            background: #10b981;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+        }
+    </style>
+</head>
+<body style="display: none; background: #f8fafc;" id="secureBody">
+    <div class="container settings-container">
+        
+        <div class="settings-header">
+            <h1 data-i18n="dashboardTitle">
+                <i class="fa-solid fa-gears"></i> داشبۆردی سەرەکی (ئەدمین)
+            </h1>
+            <button id="btnLogout" class="btn-logout" data-i18n="logout">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> چوونەدەرەوە
+            </button>
+        </div>
+
+<div class="admin-nav-cards">
+            <button class="nav-card" id="navSec" data-i18n="navSec">
+                <i class="fa-solid fa-desktop" style="color: #3b82f6;"></i> پەڕەی سکرتێر
+            </button>
+            <button class="nav-card" id="navMen" data-i18n="navMen">
+                <i class="fa-solid fa-user-doctor" style="color: #0284c7;"></i> پزیشکی پیاوان
+            </button>
+            <button class="nav-card" id="navWomen" data-i18n="navWomen">
+                <i class="fa-solid fa-user-nurse" style="color: #be185d;"></i> پزیشکی ئافرەتان
+            </button>
+            <button class="nav-card" id="navScreen" data-i18n="navScreen">
+                <i class="fa-solid fa-tv" style="color: #8b5cf6;"></i> شاشەی چاوەڕوانی
+            </button>
+            <button class="nav-card" id="navArchive" data-i18n="navArchive">
+                <i class="fa-solid fa-box-archive" style="color: #64748b;"></i> ئەرشیف
+            </button>
+        </div>
+                <div id="saveMsg" class="save-msg hidden" data-i18n="successMsg">
+            گۆڕانکارییەکان بە سەرکەوتوویی پاشەکەوت کران! ✔️
+        </div>
+
+        <div class="tab-menu">
+            <button class="tab-btn active" data-tab="clinicTab">
+                <i class="fa-solid fa-hospital"></i> <span data-i18n="tabClinic">زانیاری کلینیک</span>
+            </button>
+            <button class="tab-btn" data-tab="designTab">
+                <i class="fa-solid fa-palette"></i> <span data-i18n="tabScreenDesign">دیزاینی شاشە</span>
+            </button>
+            <button class="tab-btn" data-tab="doctorsTab">
+                <i class="fa-solid fa-user-doctor"></i> <span data-i18n="tabDoctors">دکتۆرەکان</span>
+            </button>
+            <button class="tab-btn" data-tab="queueTab">
+                <i class="fa-solid fa-list-ol"></i> <span data-i18n="tabQueue">ڕێکخستنی نۆرە</span>
+            </button>
+            <button class="tab-btn" data-tab="dhikrTab">
+                <i class="fa-solid fa-mosque"></i> <span data-i18n="tabDhikr">زیکرەکان</span>
+            </button>
+            <button class="tab-btn" data-tab="passTab">
+                <i class="fa-solid fa-shield-halved"></i> <span data-i18n="tabPass">پاسۆرد</span>
+            </button>
+            <button class="tab-btn" data-tab="cardsTab">
+                <i class="fa-solid fa-id-card"></i> <span data-i18n="tabCards">کارتەکان</span>
+            </button>
+        </div>
+
+        <div id="clinicTab" class="tab-section active-tab">
+            <div class="settings-card" style="margin-bottom: 0;">
+                <h3 data-i18n="clinicInfo"><i class="fa-solid fa-hospital"></i> زانیارییەکانی کلینیک</h3>
+                
+                <div style="margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 10px;">
+                    <label data-i18n="systemLang" style="color: #3b82f6; font-weight: bold; margin-bottom: 8px; display: block;">زمانی سیستەم:</label>
+                    <select id="sysLanguage" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 16px; outline: none; background: #ffffff; cursor: pointer;">
+                        <option value="ku">کوردی (Kurdish)</option>
+                        <option value="ar">العربية (Arabic)</option>
+                        <option value="en">English (English)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label data-i18n="clinicNameLbl">ناوی کلینیک (بۆ شاشە):</label>
+                    <input type="text" id="clinicName" data-i18n-placeholder="clinicNamePh">
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <div style="flex: 1;"><label data-i18n="menDocNameLbl">ناوی دکتۆری پیاوان:</label><input type="text" id="menDocName" data-i18n-placeholder="menDocNamePh"></div>
+                    <div style="flex: 1;"><label data-i18n="menRoomNumLbl">ژووری پیاوان:</label><input type="number" id="menRoomNum"></div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <div style="flex: 1;"><label data-i18n="womenDocNameLbl">ناوی دکتۆری ئافرەتان:</label><input type="text" id="womenDocName" data-i18n-placeholder="womenDocNamePh"></div>
+                    <div style="flex: 1;"><label data-i18n="womenRoomNumLbl">ژووری ئافرەتان:</label><input type="number" id="womenRoomNum"></div>
+                </div>
+
+<div style="margin-top: 20px; background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
+    <label data-i18n="bellSoundLbl" style="color: #475569; font-weight: bold; margin-bottom: 8px; display: block;">جۆری زەنگی ئاگادارکردنەوە:</label>
+    <div style="display: flex; gap: 10px; align-items: center; height: 48px;">
+        <select id="bellSoundSelect" style="flex: 1; height: 100%; box-sizing: border-box; padding: 0 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 16px; outline: none; background: #ffffff; cursor: pointer;">
+            <option value="bell1.mp3" data-i18n="bell1">زەنگی کلاسیک (Classic)</option>
+            <option value="bell2.mp3" data-i18n="bell2">زەنگی فڕۆکەخانە (Chime)</option>
+            <option value="bell3.mp3" data-i18n="bell3">زەنگی نەرم (Soft)</option>
+            <option value="bell4.mp3" data-i18n="bell4">زەنگی مۆدێرن (Modern)</option>
+            <option value="bell5.mp3" data-i18n="bell5">زەنگی دوانی (Double Ding)</option>
+        </select>
+        <button id="btnTestBell" style="background: #10b981; color: white; height: 100%; border: none; border-radius: 8px; padding: 0 20px; font-size: 18px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);" title="گوێگرتن لە زەنگەکە">
+            <i class="fa-solid fa-volume-high"></i>
+        </button>
+    </div>
+</div>
+            </div> 
+        </div>
+
+<div id="doctorsTab" class="tab-section">
+            <div class="settings-card" style="margin-bottom: 0;">
+                <h3 data-i18n="doctorsSettingsTitle"><i class="fa-solid fa-user-doctor"></i> پیشاندانی دکتۆرەکان لە شاشە</h3>
+                <p data-i18n="doctorsDisplayDesc" style="color: #64748b; margin-bottom: 20px;">لێرەوە دیاری بکە کام بەشە لە شاشەی چاوەڕوانی تەلەفزیۆنەکە دەربکەوێت، وە بە ڕاکێشانیان (Drag) ڕیزبەندییەکەیان لەسەر شاشەکە بگۆڕە:</p>
+                
+                <div id="doctorOrderContainer" style="background: #f1f5f9; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px;">
+                    <p style="margin: 0 0 5px 0; color: #475569; font-size: 14px; font-weight: bold;"><i class="fa-solid fa-circle-info"></i> تێبینی: ئەوەی لە سەرەوەیە دەکەوێتە لای ڕاستی شاشەکە.</p>
+                    
+                    <div class="draggable-item" draggable="true" data-section="men" style="display: flex; align-items: center; gap: 12px; background: white; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1; cursor: grab; transition: box-shadow 0.2s;">
+                        <i class="fa-solid fa-grip-vertical" style="color: #94a3b8; margin-left: 10px; font-size: 20px;"></i>
+                        <input type="checkbox" id="showMenScreen" checked style="width: 22px; height: 22px; cursor: pointer; accent-color: #0284c7;">
+                        <label for="showMenScreen" data-i18n="showMenScreen" style="font-size: 18px; font-weight: bold; cursor: pointer; margin: 0; color: #0284c7; flex: 1;">پیشاندانی بەشی پیاوان</label>
+                    </div>
+                    
+                    <div class="draggable-item" draggable="true" data-section="women" style="display: flex; align-items: center; gap: 12px; background: white; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1; cursor: grab; transition: box-shadow 0.2s;">
+                        <i class="fa-solid fa-grip-vertical" style="color: #94a3b8; margin-left: 10px; font-size: 20px;"></i>
+                        <input type="checkbox" id="showWomenScreen" checked style="width: 22px; height: 22px; cursor: pointer; accent-color: #be185d;">
+                        <label for="showWomenScreen" data-i18n="showWomenScreen" style="font-size: 18px; font-weight: bold; cursor: pointer; margin: 0; color: #be185d; flex: 1;">پیشاندانی بەشی ئافرەتان</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="queueTab" class="tab-section">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="settings-card" style="margin-bottom: 0;">
+                    <h3 data-i18n="queueMenSettings"><i class="fa-solid fa-list-ol"></i> ڕێکخستنی نۆرە (پیاوان)</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label data-i18n="letterConsult">پیتی بینین:</label><input type="text" id="menLetterB" value="B"></div>
+                        <div style="flex: 1;"><label data-i18n="countPatient">ژمارەی نەخۆش:</label><input type="number" id="menCountB" value="25"></div>
+                        <div style="flex: 1;"><label data-i18n="colorLbl">ڕەنگ:</label><input type="color" id="menColorB" value="#bae6fd"></div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <div style="flex: 1;"><label data-i18n="letterSurgery">پیتی نەشتەرگەری:</label><input type="text" id="menLetterN" value="N"></div>
+                        <div style="flex: 1;"><label data-i18n="countPatient">ژمارەی نەخۆش:</label><input type="number" id="menCountN" value="25"></div>
+                        <div style="flex: 1;"><label data-i18n="colorLbl">ڕەنگ:</label><input type="color" id="menColorN" value="#0369a1"></div>
+                    </div>
+                </div>
+
+                <div class="settings-card" style="margin-bottom: 0;">
+                    <h3 data-i18n="queueWomenSettings"><i class="fa-solid fa-list-ol"></i> ڕێکخستنی نۆرە (ئافرەتان)</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label data-i18n="letterConsult">پیتی بینین:</label><input type="text" id="womenLetterB" value="B"></div>
+                        <div style="flex: 1;"><label data-i18n="countPatient">ژمارەی نەخۆش:</label><input type="number" id="womenCountB" value="20"></div>
+                        <div style="flex: 1;"><label data-i18n="colorLbl">ڕەنگ:</label><input type="color" id="womenColorB" value="#fbcfe8"></div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <div style="flex: 1;"><label data-i18n="letterSurgery">پیتی نەشتەرگەری:</label><input type="text" id="womenLetterN" value="N"></div>
+                        <div style="flex: 1;"><label data-i18n="countPatient">ژمارەی نەخۆش:</label><input type="number" id="womenCountN" value="20"></div>
+                        <div style="flex: 1;"><label data-i18n="colorLbl">ڕەنگ:</label><input type="color" id="womenColorN" value="#be185d"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="dhikrTab" class="tab-section">
+            <div class="settings-card" style="margin-bottom: 0; border-top: 4px solid #10b981;">
+                <h3 data-i18n="dhikrSettingsTitle" style="color: #10b981;"><i class="fa-solid fa-mosque"></i> ڕێکخستنی زیکرەکان</h3>
+                
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: #64748b; margin-bottom: 10px; padding: 0 5px;">
+                        <span style="flex: 1;" data-i18n="dhikrTextLbl">دەقی زیکر</span>
+                        <span style="width: 80px; text-align: center;" data-i18n="dhikrTimeLbl">مانەوە (چرکە)</span>
+                        <span style="width: 100px;"></span>
+                    </div>
+                    
+                    <div id="dhikrInputsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    
+                    <button id="btnAddDhikr" class="btn-primary" data-i18n="addDhikrBtn" style="margin-top: 20px; width: 100%; background: #10b981; border-color: #10b981; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-plus"></i> زیادکردنی زیکر
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="designTab" class="tab-section">
+            <div class="settings-card" style="margin-bottom: 0; border-top: 4px solid #8b5cf6;">
+                <h3 data-i18n="screenDesignTitle" style="color: #8b5cf6;"><i class="fa-solid fa-palette"></i> هەڵبژاردنی دیزاینی شاشە</h3>
+                <p data-i18n="themeDesc" style="color: #64748b; margin-bottom: 25px; font-size: 16px;">کام دیزاینەت بەدڵە، هەڵیبژێرە بۆ شاشەی تەلەفزیۆنەکە:</p>
+
+                <div class="theme-selector-grid">
+                    <label class="theme-card">
+                        <input type="radio" name="screenTheme" value="theme1" checked>
+                        <div class="theme-preview theme1-preview">
+                            <i class="fa-solid fa-moon"></i>
+                            <h4 data-i18n="theme1Title">نیۆنی تاریک (Dark Neon)</h4>
+                        </div>
+                    </label>
+
+                    <label class="theme-card">
+                        <input type="radio" name="screenTheme" value="theme2">
+                        <div class="theme-preview theme2-preview">
+                            <i class="fa-solid fa-gem"></i>
+                            <h4 data-i18n="theme2Title">شوشەی کریستاڵی (Crystal Glass)</h4>
+                        </div>
+                    </label>
+
+                    <label class="theme-card">
+                        <input type="radio" name="screenTheme" value="theme3">
+                        <div class="theme-preview theme3-preview">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <h4 data-i18n="theme3Title">شوشەیی زیندوو (Vibrant Glass)</h4>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="passTab" class="tab-section">
+            <div class="settings-card" style="margin-bottom: 0;">
+                <h3 data-i18n="passMgmtTitle"><i class="fa-solid fa-shield-halved"></i> بەڕێوەبردنی تێپەڕوشە (پاسۆرد)</h3>
+                <p style="font-size: 14px; color: #64748b; margin-bottom: 15px;">بۆ گۆڕینی پاسۆرد، ئیمەیڵی ئەو کارمەندە بنووسە کە دەتەوێت لینکی گۆڕینی پاسۆردی بۆ بچێت.</p>
+                
+                <div style="display: flex; gap: 10px; height: 48px;">
+                    <input type="email" id="resetEmailInput" placeholder="ئیمەیڵی کارمەند بنووسە" style="flex: 1; height: 100%; padding: 0 15px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-family: inherit; font-size: 15px; box-sizing: border-box;" dir="ltr">
+                    
+                    <button id="btnSendReset" style="background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; padding: 0 25px; height: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; transition: 0.2s;">
+                        <i class="fa-solid fa-paper-plane"></i> ناردنی لینک
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="cardsTab" class="tab-section">
+            <div class="settings-card" style="margin-bottom: 0;">
+                <h3><i class="fa-solid fa-id-card"></i> <span data-i18n="cardsSettingsTitle">پێشبینی و دابەزاندنی کارتەکان</span></h3>
+                <p data-i18n="cardsSettingsDesc" style="font-size: 14px; color: #64748b; margin-bottom: 20px;">لێرەوە دەتوانیت پێشبینی کارتەکانی نۆرە بکەیت و دواتر وەکو فایلی PDF دابەزێنیت.</p>
+                
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="margin-bottom: 15px;">
+                        <label data-i18n="cardHeaderInputLbl" style="font-weight: bold; margin-bottom: 8px; display: block; color: #334155;">دەقی سەرەوەی کارت:</label>
+                        <input type="text" id="customCardHeader" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; outline: none; font-size: 15px;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="showCardFooter" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="showCardFooter" data-i18n="showCardFooterLbl" style="font-weight: bold; color: #334155; cursor: pointer; user-select: none;">پیشاندانی وشەی (ژمارەی نۆرە)</label>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button id="btnPreviewMen" class="btn-primary" style="flex: 1; min-width: 200px; background: #0284c7; border-color: #0284c7; font-size: 16px; padding: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-eye"></i> <span data-i18n="downloadMenBtn">پێشبینیکردنی کارتی پیاوان</span>
+                    </button>
+                    <button id="btnPreviewWomen" class="btn-primary" style="flex: 1; min-width: 200px; background: #be185d; border-color: #be185d; font-size: 16px; padding: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-eye"></i> <span data-i18n="downloadWomenBtn">پێشبینیکردنی کارتی ئافرەتان</span>
+                    </button>
+                    <button id="btnPreviewBack" class="btn-primary" style="flex: 1; min-width: 200px; background: #475569; border-color: #475569; font-size: 16px; padding: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-qrcode"></i> <span data-i18n="previewBackBtn">پێشبینی دیوی دواوەی کارتەکان</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <button id="btnSaveSettings" class="btn-save" data-i18n="saveSettings" style="margin-top: 25px;">
+            <i class="fa-solid fa-floppy-disk"></i> پاشەکەوتکردنی ڕێکخستنەکان
+        </button>
+    </div>
+
+    <div id="previewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: white; width: 95%; max-width: 800px; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); display: flex; flex-direction: column; max-height: 90vh;">
+            
+            <div id="previewModalHeader" style="background: linear-gradient(to right, #0284c7, #0369a1); padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 data-i18n="previewModalTitle" style="margin: 0; font-size: 20px; color: white;"><i class="fa-solid fa-eye"></i> پێشبینینی کارتەکان</h2>
+                <button id="btnClosePreviewModal" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s;"><i class="fa-solid fa-xmark" style="font-size: 18px;"></i></button>
+            </div>
+            
+            <div id="previewContainer" style="padding: 20px; overflow-y: auto; background: #f8fafc; flex: 1; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">
+            </div>
+            
+            <div style="padding: 15px 20px; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;" dir="rtl">
+                <span id="previewCount" style="font-weight: bold; color: #64748b;"></span>
+                <button id="btnConfirmDownload" style="background: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); display: flex; gap: 8px; align-items: center;">
+                    <i class="fa-solid fa-download"></i> <span data-i18n="downloadPdfBtn">دابەزاندن بە PDF</span>
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <script type="module" src="js/settings.js"></script>
+</body>
+</html>
