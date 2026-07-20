@@ -1,0 +1,350 @@
+import { db, collection, query, where, onSnapshot, updateDoc, doc, addDoc, serverTimestamp, orderBy, auth, onAuthStateChanged, signOut, getDoc, getDocs } from './firebase.js';
+import { applyLanguage } from './translations.js'; 
+import translations from './translations.js'; 
+
+// ==========================================
+// لۆژیکی زمانی تایبەت بە هەر کارمەندێک (دیزاینە نوێیەکە)
+// ==========================================
+let currentLang = localStorage.getItem('myUILang') || 'ku';
+applyLanguage(currentLang); 
+
+const langButtons = document.querySelectorAll('.lang-btn');
+
+langButtons.forEach(btn => {
+    if (btn.getAttribute('data-lang') === currentLang) {
+        btn.classList.add('active');
+    } else {
+        btn.classList.remove('active');
+    }
+
+    btn.addEventListener('click', (e) => {
+        const newLang = e.currentTarget.getAttribute('data-lang');
+        if (newLang !== currentLang) {
+            localStorage.setItem('myUILang', newLang);
+            window.location.reload(); 
+        }
+    });
+});
+
+// =========================================
+// پشکنینی ئاسایش و لۆگین بەپێی Role
+// =========================================
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = 'index.html';
+    } else {
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                if (role === 'doctor-women' || role === 'admin') {
+                    document.getElementById('secureBody').style.display = 'block';
+                    loadSystemSettings(); 
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.error("Auth check error:", error);
+            window.location.href = 'index.html';
+        }
+    }
+});
+
+const btnLogout = document.getElementById('btnLogout');
+if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+        btnLogout.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> چاوەڕێ بە...';
+        btnLogout.disabled = true;
+        signOut(auth).then(() => {
+            window.location.replace('index.html');
+        }).catch((error) => {
+            console.error("Logout Error:", error);
+            btnLogout.disabled = false;
+        });
+    });
+}
+
+const waitingList = document.getElementById('waitingList');
+const currentSection = 'women'; // گۆڕاوە بۆ ئافرەتان
+
+document.getElementById('btnRefresh').addEventListener('click', () => {
+    window.location.href = window.location.pathname + '?v=' + new Date().getTime();
+});
+
+// =========================================
+// گۆڕینی لایڤی ناوی نەخۆش لەسەر شاشە (Toggle Live Update)
+// =========================================
+const toggleShowNames = document.getElementById('toggleShowNames');
+if (toggleShowNames) {
+    toggleShowNames.addEventListener('change', async (e) => {
+        const isHidden = !e.target.checked;
+        try {
+            const qCalled = query(collection(db, "patients"), where("section", "==", currentSection), where("status", "==", "called"));
+            const snapshot = await getDocs(qCalled);
+            snapshot.forEach(async (patientDoc) => {
+                await updateDoc(doc(db, "patients", patientDoc.id), { hideName: isHidden });
+            });
+        } catch (err) {
+            console.error("هەڵە لە نوێکردنەوەی شاشە:", err);
+        }
+    });
+}
+
+// =========================================
+// هێنانی سێتینگی ئەدمین بۆ ڕەنگەکان و زمان
+// =========================================
+let sysSettings = null;
+
+async function loadSystemSettings() {
+    try {
+        const docSnap = await getDoc(doc(db, "settings", "general"));
+        if (docSnap.exists()) {
+            sysSettings = docSnap.data();
+        } else {
+            sysSettings = {
+                womenColorB: '#fbcfe8', womenColorN: '#be185d'
+            };
+            applyLanguage('ku');
+        }
+        loadQueue('women'); 
+    } catch (error) {
+        console.error("هەڵە لە هێنانی ڕێکخستنەکان:", error);
+        loadQueue('women');
+    }
+}
+
+function getContrastColor(hexColor) {
+    if (!hexColor) return '#0f172a';
+    let hex = hexColor.replace('#', '');
+    let r = parseInt(hex.substring(0, 2), 16), g = parseInt(hex.substring(2, 4), 16), b = parseInt(hex.substring(4, 6), 16);
+    let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#0f172a' : '#ffffff'; 
+}
+
+// =========================================
+// لۆژیکی هێنانی لیستی نەخۆشەکان
+// =========================================
+let unsubscribe = null;
+
+function loadQueue(section) {
+    if (unsubscribe) unsubscribe(); 
+    const q = query(collection(db, "patients"), where("section", "==", section), where("status", "in", ["waiting", "called", "pending"]), orderBy("timestamp", "asc"));
+
+    let txtCall = currentLang === 'en' ? 'Call 🔊' : (currentLang === 'ar' ? 'نداء 🔊' : 'بانگکردن 🔊');
+    let txtFinished = currentLang === 'en' ? 'Finished ✔️' : (currentLang === 'ar' ? 'انتهى ✔️' : 'کۆتایی هات ✔️');
+    let txtNoShow = currentLang === 'en' ? 'No Show ❌' : (currentLang === 'ar' ? 'لم يحضر ❌' : 'ئامادەنەبوو ❌');
+    let txtPendingBtn = currentLang === 'en' ? 'Hold ⏳' : (currentLang === 'ar' ? 'مؤقت ⏳' : 'کاتی ⏳');
+    let txtCallPending = currentLang === 'en' ? 'Recall 🔊' : (currentLang === 'ar' ? 'استدعاء 🔊' : 'بانگکردنەوە 🔊');
+    let txtPendingStatus = currentLang === 'en' ? 'On Hold (Pending)' : (currentLang === 'ar' ? 'في الانتظار المؤقت' : 'چاوەڕوانی کاتی');
+    let txtInside = currentLang === 'en' ? 'Inside' : (currentLang === 'ar' ? 'في الداخل' : 'لەژوورەوەیە');
+    let txtWaiting = currentLang === 'en' ? 'Waiting' : (currentLang === 'ar' ? 'في الانتظار' : 'لە چاوەڕوانیدایە');
+    let txtWaitTime = currentLang === 'en' ? 'Wait Time:' : (currentLang === 'ar' ? 'وقت الانتظار:' : 'کاتی چاوەڕوانی:');
+    let txtInsideTime = currentLang === 'en' ? 'Time Inside:' : (currentLang === 'ar' ? 'الوقت بالداخل:' : 'لە ژوورەوەیە:');
+    let txtEmg = currentLang === 'en' ? 'Emergency' : (currentLang === 'ar' ? 'حالة طارئة' : 'حاڵەتی بەپەلە');
+
+    unsubscribe = onSnapshot(q, (snapshot) => {
+        waitingList.innerHTML = '';
+        snapshot.forEach((patientDoc) => {
+            const data = patientDoc.data();
+            const id = patientDoc.id;
+            const div = document.createElement('div');
+            div.className = 'list-item';
+            
+            let isPending = data.status === 'pending';
+            
+            if (isPending) {
+                div.style.border = "3px dashed #f59e0b";
+                div.style.background = "repeating-linear-gradient(45deg, #fffbeb, #fffbeb 10px, #fef3c7 10px, #fef3c7 20px)";
+                div.style.boxShadow = "0 8px 20px rgba(245, 158, 11, 0.25)";
+                div.style.transform = "scale(1.02)";
+                div.style.margin = "15px 0";
+            }
+            
+            let buttons = '';
+            if (data.status === 'waiting') {
+                buttons = `<button class="btn-call" onclick="updateStatus('${id}', 'called')">${txtCall}</button>`;
+            } else if (isPending) {
+                buttons = `<button class="btn-call" onclick="updateStatus('${id}', 'called')" style="background: #f97316; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);"><i class="fa-solid fa-rotate-left"></i> ${txtCallPending}</button>`;
+            } else if (data.status === 'called') {
+                buttons = `
+                    <button class="btn-finish" onclick="updateStatus('${id}', 'finished')">${txtFinished}</button>
+                    <button class="btn-noshow" onclick="updateStatus('${id}', 'noshow')">${txtNoShow}</button>
+                    <button class="btn-pending" onclick="updateStatus('${id}', 'pending')" style="background: #f59e0b; color: white; border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3); transition: 0.2s;"><i class="fa-solid fa-pause"></i> ${txtPendingBtn}</button>
+                `;
+            }
+
+            let displayLabel = data.displayLabel || String(data.number);
+            let displayNumHTML = "";
+            let emergencyBadge = "";
+            let isDirectSend = false;
+            
+            if (displayLabel.includes('(') || displayLabel.includes('بەپەلە') || displayLabel.includes('Emergency') || displayLabel.includes('طارئة')) {
+                let nameText = displayLabel;
+                let badgeText = txtEmg; 
+                
+                if (displayLabel.includes('(')) {
+                    let parts = displayLabel.split('(');
+                    nameText = parts[0].trim();
+                    badgeText = parts[1].replace(')', '').trim();
+                } else {
+                    nameText = displayLabel.replace('بەپەلە', '').replace('لەناکاو', '').replace('حاڵەتی', '').replace('Emergency', '').replace('حالة طارئة', '').trim();
+                }
+
+                if (isPending) {
+                    displayNumHTML = `<div style="display:flex; align-items:center; justify-content:center; background:#f59e0b; color:#ffffff; border:3px solid #b45309; border-radius:16px; padding:10px 20px; font-size:24px; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.15);"><i class="fa-solid fa-pause" style="margin-right: 8px;"></i> ${nameText}</div>`;
+                } else {
+                    displayNumHTML = `<div style="display:flex; align-items:center; justify-content:center; background:#f8fafc; color:#0f172a; border:3px solid #cbd5e1; border-radius:16px; padding:10px 20px; font-size:24px; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.05);">${nameText}</div>`;
+                }
+                
+                emergencyBadge = `<span class="status-badge" style="background: var(--danger); color: white; margin-left: 10px;"><i class="fa-solid fa-bell"></i> ${badgeText}</span>`;
+                isDirectSend = true; 
+            } else {
+                if (isPending) {
+                    displayNumHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f59e0b; color:#ffffff; border:2px solid #b45309; border-radius:16px; width:75px; height:65px; box-shadow:0 4px 15px rgba(245, 158, 11, 0.4);">
+                        <i class="fa-solid fa-pause" style="font-size: 14px; margin-bottom: 2px;"></i>
+                        <span style="font-size: 24px; font-weight: bold; font-family: system-ui, sans-serif; letter-spacing: 1px;" dir="ltr">${displayLabel}</span>
+                    </div>`;
+                } else {
+                    let bgColor = sysSettings ? (data.visitType === 'نەشتەرگەری' ? sysSettings.womenColorN : sysSettings.womenColorB) : '#fbcfe8';
+                    let textColor = getContrastColor(bgColor);
+
+                    displayNumHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:${bgColor}; color:${textColor}; border:2px solid transparent; border-radius:16px; width:75px; height:60px; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
+                        <span style="font-size: 24px; font-weight: bold; font-family: system-ui, sans-serif; letter-spacing: 1px;" dir="ltr">${displayLabel}</span>
+                    </div>`;
+                }
+            }
+
+            let visitTypeBadge = "";
+            if (data.visitType && !isDirectSend) {
+                let badgeColor = data.visitType === 'بینین' ? 'var(--primary)' : 'var(--danger)';
+                let badgeIcon = data.visitType === 'بینین' ? 'fa-eye' : 'fa-syringe';
+                
+                let vTypeTxt = data.visitType;
+                if(vTypeTxt === 'بینین') vTypeTxt = currentLang === 'en' ? 'Consultation' : (currentLang === 'ar' ? 'معاينة' : 'بینین');
+                if(vTypeTxt === 'نەشتەرگەری') vTypeTxt = currentLang === 'en' ? 'Surgery' : (currentLang === 'ar' ? 'عملية' : 'نەشتەرگەری');
+
+                visitTypeBadge = `<span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 8px; font-size: 14px; margin-left: 10px; font-weight: bold; box-shadow: var(--shadow-sm);"><i class="fa-solid ${badgeIcon}"></i> ${vTypeTxt}</span>`;
+            }
+
+            let liveTimerHTML = "";
+            if ((data.status === 'waiting' || data.status === 'pending') && data.timestamp) {
+                liveTimerHTML = `<div style="color: #d97706; font-size: 15px; margin-top: 8px; font-weight: bold; background: #fffbeb; padding: 5px 12px; border-radius: 8px; display: inline-block;"><i class="fa-solid fa-hourglass-half fa-spin-pulse"></i> ${txtWaitTime} <span class="live-timer" dir="ltr" data-time="${data.timestamp.toMillis()}">00:00</span></div>`;
+            } else if (data.status === 'called' && data.calledAt) {
+                liveTimerHTML = `<div style="color: #16a34a; font-size: 15px; margin-top: 8px; font-weight: bold; background: #f0fdf4; padding: 5px 12px; border-radius: 8px; display: inline-block;"><i class="fa-solid fa-stethoscope fa-beat"></i> ${txtInsideTime} <span class="live-timer" dir="ltr" data-time="${data.calledAt.toMillis()}">00:00</span></div>`;
+            }
+
+            let statusTxt = '';
+            if (data.status === 'called') {
+                statusTxt = txtInside;
+            } else if (isPending) {
+                statusTxt = `<span style="color: #b45309; font-size: 20px; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1);"><i class="fa-solid fa-clock-rotate-left fa-spin-pulse" style="--fa-animation-duration: 2s;"></i> ${txtPendingStatus}</span>`;
+            } else {
+                statusTxt = txtWaiting;
+            }
+
+            let patientNameHTML = "";
+            if (data.patientName && data.patientName.trim() !== "") {
+                patientNameHTML = `<div style="font-size: 17px; font-weight: bold; color: #0f172a; margin-bottom: 6px;"><i class="fa-solid fa-user" style="color: #64748b; margin-left: 6px;"></i> ${data.patientName}</div>`;
+            }
+
+            div.innerHTML = `
+                <div class="patient-info" style="border-radius: 12px;">
+                    ${displayNumHTML}
+                    <div style="display: flex; flex-direction: column;">
+                        ${patientNameHTML}
+                        <div>${emergencyBadge} ${visitTypeBadge} <span style="font-size: 18px; font-weight: bold; margin-right: 10px;">${statusTxt}</span></div>
+                        ${liveTimerHTML} 
+                    </div>
+                </div>
+                <div class="action-buttons">${buttons}</div>
+            `;
+            waitingList.appendChild(div);
+        });
+    });
+}
+
+// =========================================
+// ژمێرەری کاتەکان
+// =========================================
+setInterval(() => {
+    document.querySelectorAll('.live-timer').forEach(timer => {
+        const startTime = parseInt(timer.getAttribute('data-time'));
+        if (startTime) {
+            let diff = Date.now() - startTime;
+            if (diff < 0) diff = 0; 
+            let totalSeconds = Math.floor(diff / 1000);
+            timer.innerText = `${Math.floor(totalSeconds / 60).toString().padStart(2, '0')}:${(totalSeconds % 60).toString().padStart(2, '0')}`;
+        }
+    });
+}, 1000); 
+
+window.updateStatus = async function(id, newStatus) {
+    let updateData = { status: newStatus };
+    if (newStatus === 'called') {
+        updateData.calledAt = serverTimestamp();
+        
+        // وەرگرتنی فەرمانی دکتۆر
+        const toggleObj = document.getElementById('toggleShowNames');
+        if (toggleObj) {
+            updateData.hideName = !toggleObj.checked;
+        }
+    }
+    else if (newStatus === 'finished' || newStatus === 'noshow') {
+        updateData.completedAt = serverTimestamp();
+    }
+    
+    await updateDoc(doc(db, "patients", id), updateData);
+}
+
+// =========================================
+// حاڵەتی بەپەلە (Emergency)
+// =========================================
+const btnToggleEmergency = document.getElementById('btnToggleEmergency');
+const emergencyBox = document.getElementById('emergencyBox');
+const emergencyIcon = document.getElementById('emergencyIcon');
+
+btnToggleEmergency.addEventListener('click', () => {
+    if (emergencyBox.style.display === 'none') {
+        emergencyBox.style.display = 'block';
+        emergencyIcon.className = 'fa-solid fa-chevron-up';
+    } else {
+        emergencyBox.style.display = 'none';
+        emergencyIcon.className = 'fa-solid fa-chevron-down';
+    }
+});
+
+document.getElementById('btnEmergency').addEventListener('click', async () => {
+    const val = document.getElementById('emergencyInput').value;
+    const typeVal = document.getElementById('emergencyType').value || 'بەپەلە'; 
+    const isSubtitleHidden = document.getElementById('hideSubtitleCheck').checked;
+    
+    // ئایا دکتۆر دەیەوێت ناو بشارێتەوە؟
+    const toggleObj = document.getElementById('toggleShowNames');
+    const isNameHidden = toggleObj ? !toggleObj.checked : false;
+    
+    let alertMsg = currentLang === 'en' ? 'Please enter the patient name' : (currentLang === 'ar' ? 'يرجى إدخال اسم المريض' : 'تکایە ناوی نەخۆش داخڵ بکە');
+    if(!val) return alert(alertMsg);
+    
+    const finalName = val + ` (${typeVal})`;
+    
+    await addDoc(collection(db, "patients"), {
+        number: finalName, 
+        displayLabel: finalName,
+        section: currentSection,
+        visitType: (typeVal.includes('نەشتەرگەری') || typeVal.includes('Surgery') || typeVal.includes('عملية')) ? "نەشتەرگەری" : "بینین", 
+        status: "called",
+        timestamp: serverTimestamp(),
+        calledAt: serverTimestamp(),
+        hideSubtitle: isSubtitleHidden,
+        hideName: isNameHidden
+    });
+    
+    document.getElementById('emergencyInput').value = '';
+    document.getElementById('hideSubtitleCheck').checked = false;
+    emergencyBox.style.display = 'none';
+});

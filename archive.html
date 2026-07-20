@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" data-page-title="pageTitleArchive">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ئەرشیفی نەخۆشەکان</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .archive-container {
+            max-width: 1400px; 
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .archive-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .filter-section {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #475569;
+        }
+
+        .filter-input {
+            padding: 12px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .filter-input:focus {
+            border-color: #3b82f6;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            grid-column: 1 / -1; 
+        }
+
+        .btn-search {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-grow: 1;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-search:hover { background: #2563eb; }
+
+        .btn-reset {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 5px;
+        }
+
+        .total-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            border: 1px solid #bae6fd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-wrapper {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            overflow-x: auto; 
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            min-width: 1000px; 
+        }
+
+        /* جێبەجێکردنی ئاڕاستە بۆ خشتەکە بەپێی زمان */
+        html[dir="ltr"] table { text-align: left; }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 18px 15px;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+            font-size: 15px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f8fafc; }
+
+        .archive-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-family: system-ui, sans-serif;
+            font-size: 14px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .status-finished { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        .status-noshow { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; }
+
+    </style>
+</head>
+<body style="background: #f1f5f9;">
+
+    <div class="archive-container">
+        <div class="archive-header">
+            <h1 data-i18n="archiveTitle" style="margin: 0; color: #0f172a; font-size: 28px;">
+                <i class="fa-solid fa-box-archive" style="color: var(--primary);"></i> ئەرشیفی نەخۆشەکان
+            </h1>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label data-i18n="filterSearchLbl" class="filter-label">گەڕان</label>
+                <input type="text" id="searchInput" data-i18n-placeholder="filterSearchPh" class="filter-input" placeholder="گەڕان بە ناو یان ژمارە...">
+            </div>
+            
+            <div class="filter-group">
+                <label data-i18n="filterSectionLbl" class="filter-label">بەش</label>
+                <select id="sectionFilter" class="filter-input">
+                    <option value="all" data-i18n="optAllSections">هەموو بەشەکان</option>
+                    <option value="men" data-i18n="optMen">پیاوان</option>
+                    <option value="women" data-i18n="optWomen">ئافرەتان</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label data-i18n="filterVisitLbl" class="filter-label">جۆری سەردان</label>
+                <select id="visitTypeFilter" class="filter-input">
+                    <option value="all" data-i18n="optAllVisits">هەمووی</option>
+                    <option value="بینین" data-i18n="optConsult">بینین</option>
+                    <option value="نەشتەرگەری" data-i18n="optSurgery">نەشتەرگەری</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label data-i18n="filterStatusLbl" class="filter-label">ڕەوش</label>
+                <select id="statusFilter" class="filter-input">
+                    <option value="all" data-i18n="optAllStatuses">هەموو ڕەوشەکان</option>
+                    <option value="finished" data-i18n="optFinished">تەواوبوو</option>
+                    <option value="noshow" data-i18n="optNoShow">نەهاتوو</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label data-i18n="filterDateFrom" class="filter-label">لە بەرواری</label>
+                <input type="date" id="dateFrom" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+                <label data-i18n="filterDateTo" class="filter-label">بۆ بەرواری</label>
+                <input type="date" id="dateTo" class="filter-input">
+            </div>
+
+            <div class="filter-actions">
+                <button id="btnSearch" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="btnSearch">گەڕان</span></button>
+                <button id="btnReset" class="btn-reset" title="پاککردنەوەی فلتەرەکان"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+        </div>
+
+        <div class="results-header">
+            <h3 data-i18n="searchResultsTitle" style="margin: 0; color: #334155; font-size: 18px;">ئەنجامی گەڕان</h3>
+            <div class="total-badge">
+                <i class="fa-solid fa-users"></i> <span data-i18n="totalCountLbl">کۆی گشتی:</span> <span id="totalCount" style="font-size: 18px; color: #0284c7; margin: 0 5px;">0</span> <span data-i18n="patientsWord">نەخۆش</span>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th data-i18n="thNumName">ژمارە / ناو</th>
+                        <th data-i18n="thSection">بەش</th>
+                        <th data-i18n="thVisitType">سەردان</th>
+                        <th data-i18n="thWaitTime">چاوەڕوانی</th>
+                        <th data-i18n="thDocTime">لای دکتۆر</th>
+                        <th data-i18n="thStatus">ڕەوش</th>
+                        <th data-i18n="thDateTime">بەروار و کات</th>
+                    </tr>
+                </thead>
+                <tbody id="archiveTableBody">
+                    <tr>
+                        <td colspan="8" data-i18n="loadingDataMsg" style="text-align: center; padding: 30px; color: #64748b;">چاوەڕێ بە، داتاکان دەهێنرێن...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module" src="js/archive.js"></script>
+</body>
+</html>

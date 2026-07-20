@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" data-page-title="pageTitleLogin">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>چوونە ژوورەوەی سیستەم</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* دیزاینی تایبەت تەنیا بۆ پەڕەی چوونە ژوورەوە */
+        body.login-body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            font-family: 'NRT', sans-serif;
+        }
+
+        /* دروستکردنی دوو ڕووناکییە بڵاوەکە لە باگراوەند */
+        .login-body::before, .login-body::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            animation: floatGlow 10s infinite alternate ease-in-out;
+        }
+        .login-body::before {
+            width: 450px; height: 450px;
+            background: rgba(37, 99, 235, 0.15); /* شینی تۆخ */
+            top: -100px; left: -100px;
+        }
+        .login-body::after {
+            width: 350px; height: 350px;
+            background: rgba(236, 72, 153, 0.15); /* پەمەیی تاریک */
+            bottom: -50px; right: -50px;
+            animation-delay: -5s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(30px) scale(1.1); }
+        }
+
+        /* کارتی شوشەیی (Glassmorphism) */
+        .login-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            padding: 50px 40px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-logo {
+            font-size: 55px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 10px 15px rgba(56, 189, 248, 0.3));
+        }
+
+        .login-title {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 35px;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        /* زیادکردنی HTML attribute دروست بەپێی LTR یان RTL بۆ ئایکۆنەکان */
+        html[dir="ltr"] .input-group i {
+            right: auto;
+            left: 20px;
+        }
+        
+        html[dir="rtl"] .input-group i {
+            right: 20px;
+            left: auto;
+        }
+
+        .input-group i {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 20px;
+            transition: color 0.3s ease;
+            z-index: 2;
+        }
+
+        /* گۆڕانکاری padding بەپێی LTR یان RTL */
+        html[dir="ltr"] .login-input {
+            padding: 18px 20px 18px 55px;
+        }
+        
+        html[dir="rtl"] .login-input {
+            padding: 18px 55px 18px 20px;
+        }
+
+        .login-input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            color: #f8fafc;
+            font-size: 18px;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: left; /* بۆ ئەوەی ئیمەیڵ بە دروستی بنووسرێت */
+            direction: ltr;
+        }
+
+        /* Placeholder directionality */
+        html[dir="ltr"] .login-input::placeholder { text-align: left; }
+        html[dir="rtl"] .login-input::placeholder { text-align: right; }
+
+        .login-input::placeholder {
+            color: #475569;
+        }
+
+        .login-input:focus {
+            border-color: #38bdf8;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+        }
+
+        .login-input:focus + i {
+            color: #38bdf8;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5);
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.7);
+            filter: brightness(1.1);
+        }
+
+        .btn-login:active {
+            transform: translateY(1px);
+        }
+
+        /* ديزاينى جوانی بۆکسەکەی هەڵە (Error Message) */
+        #errorMsg {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            font-size: 16px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            font-weight: bold;
+            display: none; 
+        }
+
+        #errorMsg:not(:empty) {
+            display: block;
+            animation: shakeError 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes shakeError {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(3px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+            40%, 60% { transform: translate3d(5px, 0, 0); }
+        }
+        
+        /* Language Selector in Login */
+        .login-lang-select {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .login-lang-select select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #94a3b8;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            text-align-last: center;
+        }
+        
+        .login-lang-select select:hover, .login-lang-select select:focus {
+            border-color: #38bdf8;
+            color: #f8fafc;
+        }
+        
+        .login-lang-select select option {
+            background: #1e293b;
+            color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="login-body">
+    
+    <div class="login-container">
+
+        <div class="login-logo">
+            <i class="fa-solid fa-hospital-user"></i>
+        </div>
+        <h2 class="login-title" data-i18n="loginTitle">سیستەمی کلینیک</h2>
+        
+        <div id="errorMsg"></div>
+        
+        <div class="input-group">
+            <input type="email" id="loginEmail" class="login-input" data-i18n-placeholder="lbl_email" placeholder="ئیمەیڵ...">
+            <i class="fa-solid fa-envelope"></i>
+        </div>
+        
+        <div class="input-group">
+            <input type="password" id="loginPassword" class="login-input" data-i18n-placeholder="lbl_password" placeholder="تێپەڕوشە (پاسۆرد)...">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        
+        <button id="btnLogin" class="btn-login" data-i18n="btn_login">
+            چوونە ژوورەوە <i class="fa-solid fa-arrow-left"></i>
+        </button>
+    </div>
+
+    <script type="module" src="js/login.js"></script>
+</body>
+</html>
