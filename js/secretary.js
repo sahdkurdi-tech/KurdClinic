@@ -26,9 +26,7 @@ langButtons.forEach(btn => {
     });
 });
 
-// =========================================
 // پشکنینی ئاسایش و لۆگین بەپێی Role
-// =========================================
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = 'index.html';
@@ -38,7 +36,14 @@ onAuthStateChanged(auth, async (user) => {
             if (userDoc.exists()) {
                 const role = userDoc.data().role;
                 if (role === 'secretary' || role === 'admin') {
-                    document.getElementById('secureBody').style.display = 'block';
+                    
+                    // شاردنەوەی لۆدینگەکە بە جوانی کاتێک سیستەم ئامادەیە
+                    const loader = document.getElementById('loadingOverlay');
+                    if(loader) {
+                        loader.style.opacity = '0';
+                        setTimeout(() => loader.style.display = 'none', 500);
+                    }
+                    
                     loadSystemSettings(); 
                 } else {
                     window.location.href = 'index.html';
@@ -85,6 +90,10 @@ async function loadSystemSettings() {
             };
         }
         initGrids(); 
+        
+        // بانگکردنی چاودێری داتابەیسەکە ڕێک دوای دروستبوونی خشتەکان
+        setupRealtimeListener(); 
+        
     } catch (error) { console.error("هەڵە لە هێنانی ڕێکخستنەکان:", error); }
 }
 
@@ -209,8 +218,6 @@ function initGrids() {
     createGrid(gridMenSurgery, m2Start, m2End, sysSettings.menLetterN, sysSettings.menColorN, 'men', 'نەشتەرگەری');
 }
 
-loadSystemSettings();
-
 // =========================================
 // ناردنی داتا بۆ فایەربەیس
 // =========================================
@@ -249,7 +256,7 @@ btnSend.addEventListener('click', async () => {
         usedBtn.style.border = '2px solid transparent';
         
         let overlayColor = selectedData.visitType === 'بینین' ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.6)';
-        usedBtn.innerHTML += `<div style="position:absolute; background:${overlayColor}; color:white; width:100%; height:100%; top:0; left:0; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-check" style="font-size:28px;"></i></div>`;
+        usedBtn.insertAdjacentHTML('beforeend', `<div style="position:absolute; background:${overlayColor}; color:white; width:100%; height:100%; top:0; left:0; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-check" style="font-size:28px;"></i></div>`);
         usedBtn.style.overflow = 'hidden';
 
         selectedData = null;
@@ -333,32 +340,45 @@ window.addEventListener('beforeunload', function (e) {
 // ==========================================
 // چاودێریکردنی ڕاستەوخۆ بۆ نوێکردنەوەی ژمارەی بەکارگیراوەکان لە پەڕەی سکرتێر
 // ==========================================
-onSnapshot(collection(db, "patients"), (snapshot) => {
-    // سەرەتا هەموو دوگمەکان بکە بە ئاسایی و هەرچی نیشانەی سەح هەیە بیسڕەوە
-    document.querySelectorAll('.number-btn').forEach(btn => {
-        btn.classList.remove('used');
-        // دۆزینەوە و سڕینەوەی دیڤی نیشانەی سەح (div) لەسەر دوگمەکە
-        const checkMark = btn.querySelector('div');
-        if (checkMark) {
-            checkMark.remove();
-        }
-    });
+function setupRealtimeListener() {
+    // هێنانی کاتی سەرەتای ئەمڕۆ (بۆ ئەوەی تەنیا داتای ئەمڕۆ وەربگرین)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // پشکنینی هەموو نەخۆشەکان بۆ دانانی هێمای نوێ
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        // ئەگەر نەخۆشەکە هێشتا تەواو نەببوو
-        if (data.status === 'waiting' || data.status === 'called' || data.status === 'pending') {
+    // دروستکردنی کوێرییەک بۆ هێنانی تەنیا نەخۆشەکانی ئەمڕۆ
+    const qToday = query(
+        collection(db, "patients"), 
+        where("timestamp", ">=", today)
+    );
+
+    // چاودێریکردنی ڕاستەوخۆ بە بەکارهێنانی کوێرییە نوێیەکە
+    onSnapshot(qToday, (snapshot) => {
+        // سەرەتا هەموو دوگمەکان بکە بە ئاسایی و هەرچی نیشانەی سەح هەیە بیسڕەوە
+        document.querySelectorAll('.number-btn').forEach(btn => {
+            btn.classList.remove('used');
+            const checkMark = btn.querySelector('div');
+            if (checkMark) {
+                checkMark.remove();
+            }
+        });
+
+       // پشکنینی نەخۆشەکانی ئەمڕۆ بۆ دانانی هێمای نوێ
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            
+            // ئەگەر ئەدمین دوگمەی سفرکردنەوەی لێدابێت، ئەم نەخۆشە پشتگوێ بخە و سەحی لێ مەدە
+            if (data.cleared === true) return;
+            
             const btn = document.getElementById(`num-${data.section}-${data.number}`);
             if (btn) {
                 btn.classList.add('used');
                 // دڵنیابوون لەوەی سەحەکە دووبارە نەبێتەوە
                 if (!btn.querySelector('div')) {
-                    // دانانی ڕەنگی سێبەری گونجاو (تاریکتر بۆ نەشتەرگەری، کاڵتر بۆ سەردان)
-                    let overlayColor = data.visitType === '' ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.6)';
-                    btn.innerHTML += `<div style="position:absolute; background:${overlayColor}; color:white; width:100%; height:100%; top:0; left:0; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-check" style="font-size:28px;"></i></div>`;
+                    // دانانی ڕەنگی سێبەری گونجاو
+                    let overlayColor = data.visitType === 'بینین' ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.6)';
+                    btn.insertAdjacentHTML('beforeend', `<div style="position:absolute; background:${overlayColor}; color:white; width:100%; height:100%; top:0; left:0; display:flex; align-items:center; justify-content:center; border-radius:10px;"><i class="fa-solid fa-check" style="font-size:28px;"></i></div>`);
                 }
             }
-        }
+        });
     });
-});
+}

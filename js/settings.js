@@ -662,25 +662,33 @@ if (btnAdminClearAll && resetConfirmModal) {
     // کاتێک پەشیمان دەبێتەوە
     btnCancelReset.addEventListener('click', hideResetModal);
 
-    // کاتێک دوگمەی دڵنیابوونەوە (بەڵی) دادەگرێت
+   // کاتێک دوگمەی دڵنیابوونەوە (بەڵێ) دادەگرێت
     btnConfirmReset.addEventListener('click', async () => {
         const originalText = btnConfirmReset.innerHTML;
         btnConfirmReset.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> چاوەڕێبە...';
         btnConfirmReset.disabled = true;
 
         try {
-            // هێنانەوەی هەموو نەخۆشە تەواونەنەکراوەکان
+            // هێنانەوەی هەموو نەخۆشەکانی ئەمڕۆ
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             const q = query(
                 collection(db, "patients"),
-                where("status", "in", ["waiting", "called", "pending"])
+                where("timestamp", ">=", today)
             );
             const snapshot = await getDocs(q);
             
-            // گۆڕینیان بۆ 'تەواوبوو' بۆ ئەوەی بچنە ئەرشیف
+            // گۆڕینی دۆخیان و دانانی نیشانەی 'cleared' بۆ ئەوەی لە پەڕەی سکرتێر بسڕێنەوە
             for (const patientDoc of snapshot.docs) {
-                await updateDoc(doc(db, "patients", patientDoc.id), {
-                    status: "finished"
-                });
+                const data = patientDoc.data();
+                const updates = { cleared: true }; // ئەم نیشانەیە وا دەکات سکرتێر نەیانخوێنێتەوە
+                
+                if (["waiting", "called", "pending"].includes(data.status)) {
+                    updates.status = "finished"; // ناردن بۆ ئەرشیف ئەگەر تەواو نەکرابوون
+                }
+                
+                await updateDoc(doc(db, "patients", patientDoc.id), updates);
             }
 
             hideResetModal();
